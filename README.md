@@ -6,7 +6,8 @@ This project focuses on building an autonomous robot which follows objects and i
 Demo Video
 https://youtube.com/shorts/ZuDGWGZLdUQ?feature=share
 
-Wiring/Casing 
+Wiring/Casing
+
 <img width="313" height="413" alt="Screenshot 2026-04-29 at 8 37 34 PM" src="https://github.com/user-attachments/assets/d9aed5b5-e5cd-4ac2-8cd0-0b6e22985541" />
 
 Materials
