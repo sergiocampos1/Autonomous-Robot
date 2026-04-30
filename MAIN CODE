@@ -1,4 +1,4 @@
-// ── Pin Definitions ──────────────────────────────────────────
+Pin Definitions 
 #define in1   4
 #define in2   5
 #define in3   9
@@ -9,11 +9,11 @@
 #define R_S   A4   // IR Right – yellow/orange/red
 #define servo 13
 
-// ── Global Variables ─────────────────────────────────────────
+Global Variables 
 int  Set = 20;   // obstacle distance threshold (cm)
 long distance_F, distance_L, distance_R;
 
-// ── Forward declarations (not strictly needed in Arduino, but good practice) ─
+Forward declarations 
 void servoPulse(int pin, int angle);
 long Ultrasonic_read();
 void Check_side();
@@ -23,7 +23,7 @@ void turnRight();
 void turnLeft();
 void Stop();
 
-// ── Setup ─────────────────────────────────────────────────────
+Setup 
 void setup() {
   Serial.begin(9600);
 
@@ -46,7 +46,7 @@ void setup() {
   delay(500);
 }
 
-// ── Main Loop ─────────────────────────────────────────────────
+Main Loop 
 void loop() {
   // Both sensors on white → open ground, move forward (or check for obstacle)
   if (digitalRead(R_S) == 1 && digitalRead(L_S) == 1) {
@@ -63,7 +63,7 @@ void loop() {
   delay(10);
 }
 
-// ── Servo Helper ──────────────────────────────────────────────
+Servo Helper 
 void servoPulse(int pin, int angle) {
   int pwm = (angle * 11) + 500;   // convert angle → microseconds
   digitalWrite(pin, HIGH);
@@ -72,7 +72,7 @@ void servoPulse(int pin, int angle) {
   delay(50);                       // servo refresh pause
 }
 
-// ── Ultrasonic Sensor ─────────────────────────────────────────
+Ultrasonic Sensor 
 long Ultrasonic_read() {
   digitalWrite(Trig, LOW);
   delayMicroseconds(2);
@@ -83,7 +83,7 @@ long Ultrasonic_read() {
   return t / 29 / 2;              // microseconds → centimetres
 }
 
-// ── Obstacle Avoidance: Look Left & Right ─────────────────────
+Obstacle Avoidance: Look Left & Right 
 void Check_side() {
   Stop();
   delay(100);
@@ -104,7 +104,7 @@ void Check_side() {
   compareDistance();
 }
 
-// ── Pick the Better Direction ─────────────────────────────────
+Pick the Better Direction
 void compareDistance() {
   if (distance_L > distance_R) {
     turnLeft();  delay(200);   // more space on the left → go left
@@ -117,7 +117,7 @@ void compareDistance() {
   }
 }
 
-// ── Motor Control ─────────────────────────────────────────────
+Motor Control
 void forword() {
   digitalWrite(in1, LOW);  digitalWrite(in2, HIGH);
   digitalWrite(in3, HIGH); digitalWrite(in4, LOW);
