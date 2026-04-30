@@ -11,7 +11,7 @@ Materials
 - Breadboard
 - Pack of wheels (2)
 - IR Receiver (2)
-- Sensor
+- Ultrasonic Sensor
 - Battery Pack
 - DC Motor Pack (2)
 - LEDs
