@@ -1,0 +1,139 @@
+// ── Pin Definitions ──────────────────────────────────────────
+#define in1   4
+#define in2   5
+#define in3   9
+#define in4   10
+#define Trig  7
+#define Echo  8
+#define L_S   A3   // IR Left  – brown/black/white
+#define R_S   A4   // IR Right – yellow/orange/red
+#define servo 13
+
+// ── Global Variables ─────────────────────────────────────────
+int  Set = 20;   // obstacle distance threshold (cm)
+long distance_F, distance_L, distance_R;
+
+// ── Forward declarations (not strictly needed in Arduino, but good practice) ─
+void servoPulse(int pin, int angle);
+long Ultrasonic_read();
+void Check_side();
+void compareDistance();
+void forword();
+void turnRight();
+void turnLeft();
+void Stop();
+
+// ── Setup ─────────────────────────────────────────────────────
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(R_S,  INPUT);
+  pinMode(L_S,  INPUT);
+  pinMode(Echo, INPUT);
+  pinMode(Trig, OUTPUT);
+  pinMode(in1,  OUTPUT);
+  pinMode(in2,  OUTPUT);
+  pinMode(in3,  OUTPUT);
+  pinMode(in4,  OUTPUT);
+  pinMode(servo, OUTPUT);
+
+  // Sweep servo left → right → centre on startup
+  for (int angle = 70;  angle <= 140; angle += 5) servoPulse(servo, angle);
+  for (int angle = 140; angle >= 0;   angle -= 5) servoPulse(servo, angle);
+  for (int angle = 0;   angle <= 70;  angle += 5) servoPulse(servo, angle);
+
+  distance_F = Ultrasonic_read();
+  delay(500);
+}
+
+// ── Main Loop ─────────────────────────────────────────────────
+void loop() {
+  // Both sensors on white → open ground, move forward (or check for obstacle)
+  if (digitalRead(R_S) == 1 && digitalRead(L_S) == 1) {
+    if (distance_F > Set) forword();
+    else                  Check_side();
+  }
+  // Right on black, left on white → veer right
+  else if (digitalRead(R_S) == 1 && digitalRead(L_S) == 0) turnRight();
+  // Right on white, left on black → veer left
+  else if (digitalRead(R_S) == 0 && digitalRead(L_S) == 1) turnLeft();
+  // Both on black → stop
+  else                                                       Stop();
+
+  delay(10);
+}
+
+// ── Servo Helper ──────────────────────────────────────────────
+void servoPulse(int pin, int angle) {
+  int pwm = (angle * 11) + 500;   // convert angle → microseconds
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(pwm);
+  digitalWrite(pin, LOW);
+  delay(50);                       // servo refresh pause
+}
+
+// ── Ultrasonic Sensor ─────────────────────────────────────────
+long Ultrasonic_read() {
+  digitalWrite(Trig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(Trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(Trig, LOW);        // ← added: pull Trig back LOW cleanly
+  long t = pulseIn(Echo, HIGH);
+  return t / 29 / 2;              // microseconds → centimetres
+}
+
+// ── Obstacle Avoidance: Look Left & Right ─────────────────────
+void Check_side() {
+  Stop();
+  delay(100);
+
+  for (int a = 70;  a <= 140; a += 5) servoPulse(servo, a);
+  delay(300);
+  distance_R = Ultrasonic_read();
+  Serial.print("D R="); Serial.println(distance_R);
+
+  for (int a = 140; a >= 0;   a -= 5) servoPulse(servo, a);
+  delay(500);
+  distance_L = Ultrasonic_read();
+  Serial.print("D L="); Serial.println(distance_L);
+
+  for (int a = 0;   a <= 70;  a += 5) servoPulse(servo, a);
+  delay(300);
+
+  compareDistance();
+}
+
+// ── Pick the Better Direction ─────────────────────────────────
+void compareDistance() {
+  if (distance_L > distance_R) {
+    turnLeft();  delay(200);   // more space on the left → go left
+    forword();   delay(700);
+    turnRight(); delay(500);
+  } else {
+    turnRight(); delay(300);   // more space on the right → go right
+    forword();   delay(700);
+    turnLeft();  delay(500);
+  }
+}
+
+// ── Motor Control ─────────────────────────────────────────────
+void forword() {
+  digitalWrite(in1, LOW);  digitalWrite(in2, HIGH);
+  digitalWrite(in3, HIGH); digitalWrite(in4, LOW);
+}
+
+void turnRight() {
+  digitalWrite(in1, LOW);  digitalWrite(in2, HIGH);
+  digitalWrite(in3, LOW);  digitalWrite(in4, HIGH);
+}
+
+void turnLeft() {
+  digitalWrite(in1, HIGH); digitalWrite(in2, LOW);
+  digitalWrite(in3, HIGH); digitalWrite(in4, LOW);
+}
+
+void Stop() {
+  digitalWrite(in1, LOW); digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW); digitalWrite(in4, LOW);
+}
